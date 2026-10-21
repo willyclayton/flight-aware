@@ -189,7 +189,7 @@ async function proxyAdsb(res, requestUrl) {
   }
 }
 
-async function proxyJson(res, upstreamUrl) {
+async function proxyJson(res, upstreamUrl, cacheControl = 'no-store') {
   try {
     const response = await fetch(upstreamUrl, {
       headers: {
@@ -201,10 +201,71 @@ async function proxyJson(res, upstreamUrl) {
     res.writeHead(response.status, {
       'Content-Type':
         response.headers.get('content-type') || 'application/json',
-      'Cache-Control': 'no-store',
+      'Cache-Control': cacheControl,
     })
     res.end(body)
   } catch (error) {
+    res.writeHead(502, { 'Content-Type': 'application/json' })
+    res.end(
+      JSON.stringify({
+        error: 'proxy_failed',
+        message: error instanceof Error ? error.message : 'Upstream failed',
+      }),
+    )
+  }
+}
+
+/** Photos change rarely — cache to avoid planespotters 429s on shared hosts. */
+const PHOTO_CACHE_TTL_MS = Number(process.env.PHOTO_CACHE_TTL_MS || 3_600_000)
+/** @type {Map<string, { body: Buffer, status: number, expires: number }>} */
+const photoCache = new Map()
+
+async function proxyPhotos(res, requestUrl) {
+  const path = requestUrl.replace(/^\/api\/photos/, '') || '/'
+  const now = Date.now()
+  const cached = photoCache.get(path)
+  if (cached && cached.expires > now) {
+    res.writeHead(cached.status, {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=300',
+      'X-Photo-Cache': 'hit',
+    })
+    res.end(cached.body)
+    return
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.planespotters.net/pub/photos${path}`,
+      {
+        headers: { Accept: 'application/json', 'User-Agent': UA },
+      },
+    )
+    const body = Buffer.from(await response.arrayBuffer())
+    if (response.ok || response.status === 404) {
+      photoCache.set(path, {
+        body,
+        status: response.status,
+        expires: now + PHOTO_CACHE_TTL_MS,
+      })
+    }
+    res.writeHead(response.status, {
+      'Content-Type':
+        response.headers.get('content-type') || 'application/json',
+      'Cache-Control': response.ok ? 'public, max-age=300' : 'no-store',
+      'X-Photo-Cache': 'miss',
+    })
+    res.end(body)
+  } catch (error) {
+    if (cached) {
+      res.writeHead(cached.status, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=60',
+        'X-Photo-Cache': 'stale',
+      })
+      res.end(cached.body)
+      return
+    }
     res.writeHead(502, { 'Content-Type': 'application/json' })
     res.end(
       JSON.stringify({
@@ -259,10 +320,14 @@ createServer((req, res) => {
     void proxyJson(res, `https://aviationweather.gov/api/data/metar${query}`)
     return
   }
+  if (url.startsWith('/api/photos/')) {
+    void proxyPhotos(res, url)
+    return
+  }
   serveStatic(res, url)
 }).listen(port, host, () => {
   console.log(`Flight Aware (free) → http://${host}:${port}`)
   console.log(
-    'Proxies: /api/adsb → adsb.fi|adsb.lol (cached) · /api/metar → aviationweather.gov',
+    'Proxies: /api/adsb → adsb.fi|adsb.lol · /api/metar · /api/photos → planespotters',
   )
 })

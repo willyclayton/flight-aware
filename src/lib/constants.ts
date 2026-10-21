@@ -1,5 +1,5 @@
 export const DEFAULT_MAP_CENTER: [number, number] = [34.05, -118.25]
-export const DEFAULT_MAP_ZOOM = 9
+export const DEFAULT_MAP_ZOOM = 8
 export const TRAFFIC_REFRESH_MS = 8_000
 export const VIEWPORT_DEBOUNCE_MS = 350
 
