@@ -717,6 +717,35 @@ input {
   font-size: 0.85rem;
 }
 
+.flight-card__silhouette {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 160px;
+  padding: 1rem 0.75rem;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(31, 111, 191, 0.28), transparent 60%),
+    rgba(0, 0, 0, 0.25);
+}
+
+.flight-card__silhouette svg {
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+}
+
+.flight-card__silhouette p {
+  margin: 0.35rem 0 0;
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.flight-card__silhouette span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
 .flight-card__stats {
   display: grid;
   grid-template-columns: 1fr 1fr;

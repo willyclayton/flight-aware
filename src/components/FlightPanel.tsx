@@ -17,7 +17,7 @@ import {
   formatTrack,
   formatVerticalRate,
 } from '../lib/format'
-import { resolveAircraftShape } from '../lib/resolveAircraftShape'
+import { resolveAircraftShape, shapeDef } from '../lib/resolveAircraftShape'
 import type { Aircraft } from '../types/aircraft'
 
 type Props = {
@@ -62,6 +62,7 @@ export function FlightPanel({
   useEffect(() => {
     if (!hex) {
       setPhoto(null)
+      setPhotoLoading(false)
       return
     }
 
@@ -69,11 +70,14 @@ export function FlightPanel({
     setPhoto(null)
     setPhotoLoading(true)
 
-    void fetchAircraftPhoto(hex, registration).then((next) => {
-      if (cancelled) return
-      setPhoto(next)
-      setPhotoLoading(false)
-    })
+    void fetchAircraftPhoto(hex, registration)
+      .then((next) => {
+        if (cancelled) return
+        setPhoto(next)
+      })
+      .finally(() => {
+        if (!cancelled) setPhotoLoading(false)
+      })
 
     return () => {
       cancelled = true
@@ -110,7 +114,9 @@ export function FlightPanel({
 
   if (!aircraft) return null
 
-  const shape = SHAPE_LABELS[resolveAircraftShape(aircraft)] ?? 'Unknown'
+  const shapeId = resolveAircraftShape(aircraft)
+  const shape = shapeDef(shapeId)
+  const shapeLabel = SHAPE_LABELS[shapeId] ?? 'Unknown'
 
   return (
     <aside className="flight-card" aria-live="polite">
@@ -121,7 +127,7 @@ export function FlightPanel({
             {aircraft.type ? ` · ${aircraft.type}` : ''}
           </p>
           <h2 className="flight-card__callsign">{aircraft.flight}</h2>
-          <p className="flight-card__shape">{shape}</p>
+          <p className="flight-card__shape">{shapeLabel}</p>
         </div>
         <div className="flight-card__actions">
           <button
@@ -160,8 +166,30 @@ export function FlightPanel({
             </span>
           </a>
         ) : (
-          <div className="flight-card__photo-empty">
-            {photoLoading ? 'Loading photo…' : 'No photo available'}
+          <div className="flight-card__silhouette" aria-hidden={photoLoading}>
+            <svg
+              viewBox={shape.viewBox}
+              width={Math.round(shape.width * 2.4)}
+              height={Math.round(shape.height * 2.4)}
+            >
+              <path
+                d={shape.path.replace(/\s+/g, ' ').trim()}
+                fill="#ffe14a"
+                stroke="#1a1200"
+                strokeWidth="1.2"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <p>
+              {photoLoading
+                ? 'Looking up photo…'
+                : aircraft.type
+                  ? `${aircraft.type} silhouette`
+                  : `${shapeLabel} silhouette`}
+            </p>
+            {!photoLoading ? (
+              <span>No planespotters photo for this tail yet</span>
+            ) : null}
           </div>
         )}
       </div>
