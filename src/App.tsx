@@ -5,12 +5,12 @@ import { BrandMark } from './components/BrandMark'
 import { FiltersPanel } from './components/FiltersPanel'
 import { FlightMap } from './components/FlightMap'
 import { FlightPanel } from './components/FlightPanel'
-import { Hud } from './components/Hud'
 import {
   LayersPanel,
   type LayerSettings,
 } from './components/LayersPanel'
 import { MapTools } from './components/MapTools'
+import { SearchPanel } from './components/SearchPanel'
 import { useEmergencyAlerts } from './hooks/useEmergencyAlerts'
 import { useNearbyAircraft } from './hooks/useNearbyAircraft'
 import { useTrackHistory } from './hooks/useTrackHistory'
@@ -32,7 +32,7 @@ const DEFAULT_LAYERS: LayerSettings = {
   airports: true,
 }
 
-type OpenPanel = 'layers' | 'filters' | null
+type OpenPanel = 'layers' | 'filters' | 'search' | null
 
 export default function App() {
   const [viewport, setViewport] = useState<MapViewport | null>(null)
@@ -112,6 +112,7 @@ export default function App() {
           results.find((ac) => ac.hex === hex) ?? results[0] ?? null
         if (!found) {
           setSearchError(`No live traffic for ${flight || hex}`)
+          setOpenPanel('search')
           return
         }
         setPinned(found)
@@ -161,7 +162,7 @@ export default function App() {
     }
   }, [])
 
-  const toggleTool = useCallback((panel: 'layers' | 'filters') => {
+  const toggleTool = useCallback((panel: 'layers' | 'filters' | 'search') => {
     setOpenPanel((prev) => (prev === panel ? null : panel))
   }, [])
 
@@ -182,19 +183,25 @@ export default function App() {
         onRadarAge={setRadarAge}
       />
 
-      <Hud
-        aircraftCount={visibleAircraft.length}
-        loading={loading}
-        error={error}
-        searchBusy={searchBusy}
-        searchError={searchError}
-        onSearch={onSearch}
-      />
+      <div className="traffic-status traffic-status--dock" role="status">
+        <span
+          className={`traffic-status__dot${loading ? ' is-loading' : ''}`}
+        />
+        <span>{error ?? `${visibleAircraft.length.toLocaleString()} aircraft`}</span>
+      </div>
 
       <MapTools
         open={openPanel}
         onToggle={toggleTool}
         filtersActive={filtersActive(filters)}
+      />
+
+      <SearchPanel
+        open={openPanel === 'search'}
+        busy={searchBusy}
+        error={searchError}
+        onSearch={onSearch}
+        onClose={() => setOpenPanel(null)}
       />
 
       <LayersPanel
@@ -234,7 +241,7 @@ export default function App() {
       <BrandMark />
 
       <footer className="map-attrib">
-        © Flight Aware · OSM · adsb.fi
+        © Flight Aware · OSM · adsb.fi · planespotters.net
       </footer>
     </div>
   )

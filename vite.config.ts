@@ -14,6 +14,15 @@ const apiProxy: Record<string, ProxyOptions> = {
     rewrite: (path) =>
       path.replace(/^\/api\/metar/, '/api/data/metar'),
   },
+  '/api/photos': {
+    target: 'https://api.planespotters.net',
+    changeOrigin: true,
+    rewrite: (path) => path.replace(/^\/api\/photos/, '/pub/photos'),
+    headers: {
+      'User-Agent':
+        'flight-aware/0.1 (+https://github.com/willyclayton/flight-aware)',
+    },
+  },
 }
 
 export default defineConfig({

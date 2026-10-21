@@ -1,14 +1,29 @@
-type Panel = 'layers' | 'filters' | null
+type Panel = 'layers' | 'filters' | 'search' | null
 
 type Props = {
   open: Panel
-  onToggle: (panel: 'layers' | 'filters') => void
+  onToggle: (panel: 'layers' | 'filters' | 'search') => void
   filtersActive?: boolean
 }
 
 export function MapTools({ open, onToggle, filtersActive }: Props) {
   return (
     <div className="map-tools" role="toolbar" aria-label="Map tools">
+      <button
+        type="button"
+        className={`map-tools__btn${open === 'search' ? ' is-active' : ''}`}
+        onClick={() => onToggle('search')}
+        aria-pressed={open === 'search'}
+        aria-label="Track a flight"
+        title="Track a flight"
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M10.5 3a7.5 7.5 0 0 1 5.95 12.1l3.72 3.73-1.41 1.41-3.73-3.72A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"
+          />
+        </svg>
+      </button>
       <button
         type="button"
         className={`map-tools__btn${open === 'layers' ? ' is-active' : ''}`}

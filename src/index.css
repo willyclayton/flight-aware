@@ -273,30 +273,18 @@ input {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
 }
 
-/* —— Compact top search —— */
-.top-chrome {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 710;
-  width: min(420px, calc(100vw - 120px));
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  pointer-events: none;
-}
-
+/* —— Track search (tool panel) —— */
 .track-search {
-  pointer-events: auto;
   display: flex;
   align-items: stretch;
-  background: rgba(8, 20, 34, 0.88);
+  background: rgba(0, 0, 0, 0.28);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 3px;
   overflow: hidden;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(8px);
+}
+
+.track-search--panel {
+  margin-bottom: 0.65rem;
 }
 
 .track-search__input {
@@ -335,8 +323,6 @@ input {
 }
 
 .traffic-status {
-  pointer-events: none;
-  align-self: center;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -346,6 +332,15 @@ input {
   color: #d7e3ec;
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+.traffic-status--dock {
+  position: absolute;
+  left: 12px;
+  top: 128px;
+  z-index: 700;
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .traffic-status__dot {
@@ -683,6 +678,45 @@ input {
   cursor: pointer;
 }
 
+.flight-card__photo {
+  margin-top: 0.75rem;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.35);
+  min-height: 140px;
+}
+
+.flight-card__photo a {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.flight-card__photo img {
+  display: block;
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  background: #0a1520;
+}
+
+.flight-card__photo-credit {
+  display: block;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.68rem;
+  color: var(--muted);
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.flight-card__photo-empty {
+  display: grid;
+  place-items: center;
+  min-height: 140px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 .flight-card__stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -871,11 +905,10 @@ input {
 
 /* —— Mobile —— */
 @media (max-width: 720px) {
-  .top-chrome {
-    left: 56px;
-    right: 56px;
-    width: auto;
-    transform: none;
+  .traffic-status--dock {
+    top: auto;
+    bottom: 72px;
+    left: 12px;
   }
 
   .map-tools {

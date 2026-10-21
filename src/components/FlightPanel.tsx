@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 import {
+  fetchAircraftPhoto,
+  type AircraftPhoto,
+} from '../api/photos'
+import {
   fetchLocalWeather,
   fetchMetar,
   weatherCodeLabel,
@@ -47,10 +51,34 @@ export function FlightPanel({
 }: Props) {
   const [weather, setWeather] = useState<LocalWeather | null>(null)
   const [metar, setMetar] = useState<MetarSummary | null>(null)
+  const [photo, setPhoto] = useState<AircraftPhoto | null>(null)
+  const [photoLoading, setPhotoLoading] = useState(false)
 
   const hex = aircraft?.hex
+  const registration = aircraft?.registration
   const latBucket = aircraft ? aircraft.lat.toFixed(2) : null
   const lonBucket = aircraft ? aircraft.lon.toFixed(2) : null
+
+  useEffect(() => {
+    if (!hex) {
+      setPhoto(null)
+      return
+    }
+
+    let cancelled = false
+    setPhoto(null)
+    setPhotoLoading(true)
+
+    void fetchAircraftPhoto(hex, registration).then((next) => {
+      if (cancelled) return
+      setPhoto(next)
+      setPhotoLoading(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [hex, registration])
 
   useEffect(() => {
     if (hex == null || latBucket == null || lonBucket == null) return
@@ -113,6 +141,30 @@ export function FlightPanel({
           </button>
         </div>
       </header>
+
+      <div className="flight-card__photo">
+        {photo ? (
+          <a
+            href={photo.link}
+            target="_blank"
+            rel="noreferrer"
+            title={`Photo by ${photo.photographer}`}
+          >
+            <img
+              src={photo.thumbnailUrl}
+              alt={`${aircraft.flight} aircraft`}
+              loading="lazy"
+            />
+            <span className="flight-card__photo-credit">
+              Photo: {photo.photographer} · planespotters.net
+            </span>
+          </a>
+        ) : (
+          <div className="flight-card__photo-empty">
+            {photoLoading ? 'Loading photo…' : 'No photo available'}
+          </div>
+        )}
+      </div>
 
       <div className="flight-card__stats">
         <div>

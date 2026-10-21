@@ -259,10 +259,15 @@ createServer((req, res) => {
     void proxyJson(res, `https://aviationweather.gov/api/data/metar${query}`)
     return
   }
+  if (url.startsWith('/api/photos/')) {
+    const path = url.replace(/^\/api\/photos/, '') || '/'
+    void proxyJson(res, `https://api.planespotters.net/pub/photos${path}`)
+    return
+  }
   serveStatic(res, url)
 }).listen(port, host, () => {
   console.log(`Flight Aware (free) → http://${host}:${port}`)
   console.log(
-    'Proxies: /api/adsb → adsb.fi|adsb.lol (cached) · /api/metar → aviationweather.gov',
+    'Proxies: /api/adsb → adsb.fi|adsb.lol · /api/metar · /api/photos → planespotters',
   )
 })
