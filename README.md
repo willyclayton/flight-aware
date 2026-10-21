@@ -1,8 +1,8 @@
 # Flight Aware
 
-Live ADS-B flight tracker — full-bleed dark map, vicinity traffic, callsign/hex search.
+Live ADS-B flight tracker with a **free recreation of FlightAware Aviator / Premium map extras**.
 
-**Free to run: no API keys, accounts, or paid services.**
+**$0 to run — no FlightAware subscription, no API keys.**
 
 ## Quick start
 
@@ -11,41 +11,37 @@ npm install
 npm run dev
 ```
 
-Production locally:
+## What’s behind FlightAware’s paywall (and what we rebuilt)
 
-```bash
-npm run build
-npm start
-```
+From Aviator / Global / live-map upgrade prompts, paid unlocks include premium map styles, weather layers, trails/surface detail, alerts, saved aircraft, and deeper flight history.
 
-## Stack (all free)
+| Paid FlightAware feature | Free recreation here |
+| --- | --- |
+| Premium map styles | Dark / Streets / Satellite / Terrain |
+| Weather radar & satellite | RainViewer radar + IR |
+| Track detail / surface feel | In-session flight trails |
+| Saved aircraft | Local watchlist |
+| Squawk / distress awareness | 7500 / 7600 / 7700 alerts |
+| Cockpit weather context | Open-Meteo at aircraft + METAR (aviationweather.gov) |
+| Type-accurate icons | ICAO/category silhouettes |
+
+**Not recreated** (needs proprietary / paid feeds): Aireon space-based ADS-B, blocked-aircraft tracking, multi-month FlightAware history DB, official Flight Intents filed into FA’s system.
+
+## Free stack
 
 | Piece | Source |
 | --- | --- |
-| Live aircraft | [adsb.lol](https://api.adsb.lol) (rate-limited, no key) |
-| Map tiles | [OpenStreetMap](https://www.openstreetmap.org/copyright) + CSS dark filter |
-| Fonts | `@fontsource/*` (bundled) |
-| Proxy | Vite / `npm start` → `/api/adsb` |
-
-## Features
-
-- Live aircraft in the current map viewport (auto-refresh)
-- Type-accurate silhouettes (airliner, heavy, GA, helicopter, …) from ICAO type / ADS-B category
-- Altitude-colored icons + callsign labels (FlightAware-style)
-- Track by callsign or ICAO24 hex
-- Selected-flight panel with type, altitude, speed, track, squawk
+| Live aircraft | [adsb.lol](https://api.adsb.lol) |
+| Radar / IR | [RainViewer](https://www.rainviewer.com/api.html) |
+| Local weather | [Open-Meteo](https://open-meteo.com/) |
+| METAR | [aviationweather.gov](https://aviationweather.gov/) |
+| Map tiles | OSM / Esri imagery / OpenTopoMap |
 
 ## Scripts
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev` | Vite dev server + ADS-B proxy |
-| `npm run build` | Typecheck + production bundle |
-| `npm start` | Serve `dist/` with ADS-B proxy |
+| `npm run dev` | Vite + API proxies |
+| `npm run build` | Typecheck + bundle |
+| `npm start` | Serve `dist/` with proxies |
 | `npm run lint` | Oxlint |
-
-## Notes
-
-- Traffic refreshes are debounced; adsb.lol limits anonymous clients (~4 req/s, 60/min).
-- Coverage follows ADS-B receiver density (strongest over US/Europe).
-- Keep OSM tile usage modest for personal/low traffic use.

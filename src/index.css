@@ -64,8 +64,14 @@ input {
 }
 
 /* Classic FlightAware-ish blue night map from free OSM tiles */
-.flight-map .leaflet-tile-pane {
+.flight-map--dark .leaflet-tile-pane {
   filter: invert(1) hue-rotate(190deg) brightness(0.85) contrast(1.05) saturate(0.55);
+}
+
+.flight-map--streets .leaflet-tile-pane,
+.flight-map--satellite .leaflet-tile-pane,
+.flight-map--terrain .leaflet-tile-pane {
+  filter: none;
 }
 
 .flight-map .leaflet-control-zoom a {
@@ -361,8 +367,10 @@ input {
   position: absolute;
   z-index: 600;
   top: 1.1rem;
-  right: 1.1rem;
+  left: 1.1rem;
   width: min(320px, calc(100% - 2rem));
+  max-height: calc(100vh - 2.2rem);
+  overflow: auto;
   padding: 1rem 1.05rem 1.1rem;
   border: 1px solid var(--panel-border);
   border-radius: 1.1rem;
@@ -375,7 +383,7 @@ input {
 @keyframes panel-in {
   from {
     opacity: 0;
-    transform: translateX(18px);
+    transform: translateX(-18px);
   }
   to {
     opacity: 1;
@@ -389,6 +397,260 @@ input {
   justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 0.9rem;
+}
+
+.flight-panel__actions {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.flight-panel__watch {
+  border: 1px solid rgba(125, 196, 188, 0.35);
+  border-radius: 0.55rem;
+  padding: 0.35rem 0.55rem;
+  color: var(--accent);
+  background: transparent;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.flight-panel__watch.is-on {
+  color: #042018;
+  background: linear-gradient(180deg, #4be0d0, #2bb8aa);
+  border-color: transparent;
+}
+
+.flight-panel__weather {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(125, 196, 188, 0.16);
+}
+
+.flight-panel__weather h3 {
+  margin: 0 0 0.35rem;
+  color: var(--accent);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.flight-panel__weather p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.flight-panel__metar {
+  font-family: var(--font-mono);
+  font-size: 0.72rem !important;
+  color: var(--muted) !important;
+  word-break: break-word;
+}
+
+/* —— Layers / Pro suite —— */
+.layers-dock {
+  position: absolute;
+  z-index: 650;
+  top: 1.1rem;
+  right: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.55rem;
+}
+
+.layers-dock__toggle {
+  border: 1px solid var(--panel-border);
+  border-radius: 0.7rem;
+  padding: 0.55rem 0.85rem;
+  color: var(--ink);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.layers-dock__toggle.is-open {
+  color: #042018;
+  background: linear-gradient(180deg, #4be0d0, #2bb8aa);
+  border-color: transparent;
+}
+
+.layers-panel {
+  width: min(300px, calc(100vw - 2rem));
+  max-height: min(70vh, 560px);
+  overflow: auto;
+  padding: 0.95rem 1rem 1.05rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 1rem;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+  animation: panel-in 0.35s ease both;
+}
+
+.layers-panel__eyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.layers-panel__title {
+  margin: 0.2rem 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+}
+
+.layers-panel__hint {
+  margin: 0 0 0.85rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.layers-panel__section {
+  margin-top: 0.75rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(125, 196, 188, 0.14);
+}
+
+.layers-panel__section h3 {
+  margin: 0 0 0.45rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.layers-panel__choices {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.layers-panel__choice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ink);
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.layers-panel__empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.layers-panel__watch {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.layers-panel__watch li {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.layers-panel__watch-focus {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  border: 1px solid rgba(125, 196, 188, 0.2);
+  border-radius: 0.55rem;
+  padding: 0.4rem 0.55rem;
+  color: var(--ink);
+  background: rgba(4, 14, 20, 0.55);
+  cursor: pointer;
+  text-align: left;
+}
+
+.layers-panel__watch-focus span {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+.layers-panel__watch-remove {
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 1px solid rgba(125, 196, 188, 0.2);
+  border-radius: 0.45rem;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.alert-stack {
+  position: absolute;
+  z-index: 700;
+  left: 50%;
+  bottom: 1.1rem;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 0.45rem;
+  width: min(360px, calc(100vw - 2rem));
+  pointer-events: none;
+}
+
+.alert-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(232, 93, 76, 0.45);
+  border-radius: 0.8rem;
+  background: rgba(48, 12, 12, 0.92);
+  box-shadow: var(--shadow);
+  pointer-events: auto;
+  animation: toast-in 0.3s ease both;
+}
+
+.alert-card__label {
+  margin: 0;
+  color: #ffb4ab;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.alert-card__flight {
+  margin-top: 0.25rem;
+  border: none;
+  padding: 0;
+  color: #fff;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.alert-card__close {
+  border: 1px solid rgba(255, 180, 171, 0.35);
+  border-radius: 0.45rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  color: #ffb4ab;
+  background: transparent;
+  cursor: pointer;
 }
 
 .flight-panel__eyebrow {
@@ -489,12 +751,23 @@ input {
     flex-direction: column;
   }
 
-  .flight-panel {
+  .layers-dock {
     top: auto;
     right: 0.75rem;
     bottom: 0.75rem;
+  }
+
+  .flight-panel {
+    top: auto;
+    right: 0.75rem;
+    bottom: 4.5rem;
     left: 0.75rem;
     width: auto;
+    max-height: 42vh;
+  }
+
+  .alert-stack {
+    bottom: 0.75rem;
   }
 
   .map-credit {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Zero-key production server: static dist/ + free adsb.lol proxy.
+ * Zero-key production server: static dist/ + free API proxies.
  */
 import { createServer } from 'node:http'
 import { createReadStream, existsSync, statSync } from 'node:fs'
@@ -11,7 +11,6 @@ const root = resolve(fileURLToPath(new URL('.', import.meta.url)), '..')
 const dist = join(root, 'dist')
 const host = process.env.HOST || '127.0.0.1'
 const port = Number(process.env.PORT || 4173)
-const adsbOrigin = 'https://api.adsb.lol'
 
 const mime = new Map([
   ['.html', 'text/html; charset=utf-8'],
@@ -26,13 +25,12 @@ const mime = new Map([
   ['.map', 'application/json'],
 ])
 
-async function proxyAdsb(res, pathWithQuery) {
+async function proxyJson(res, upstreamUrl, userAgent) {
   try {
-    const response = await fetch(`${adsbOrigin}${pathWithQuery}`, {
+    const response = await fetch(upstreamUrl, {
       headers: {
         Accept: 'application/json',
-        'User-Agent':
-          'flight-aware/0.1 (local free proxy; github.com/willyclayton/flight-aware)',
+        'User-Agent': userAgent,
       },
     })
     const body = Buffer.from(await response.arrayBuffer())
@@ -46,7 +44,7 @@ async function proxyAdsb(res, pathWithQuery) {
     res.writeHead(502, { 'Content-Type': 'application/json' })
     res.end(
       JSON.stringify({
-        error: 'adsb_proxy_failed',
+        error: 'proxy_failed',
         message: error instanceof Error ? error.message : 'Upstream failed',
       }),
     )
@@ -89,11 +87,24 @@ if (!existsSync(dist)) {
 createServer((req, res) => {
   const url = req.url || '/'
   if (url.startsWith('/api/adsb')) {
-    void proxyAdsb(res, url.replace(/^\/api\/adsb/, '') || '/')
+    void proxyJson(
+      res,
+      `https://api.adsb.lol${url.replace(/^\/api\/adsb/, '') || '/'}`,
+      'flight-aware/0.1 (adsb proxy)',
+    )
+    return
+  }
+  if (url.startsWith('/api/metar')) {
+    const query = url.includes('?') ? url.slice(url.indexOf('?')) : ''
+    void proxyJson(
+      res,
+      `https://aviationweather.gov/api/data/metar${query}`,
+      'flight-aware/0.1 (metar proxy)',
+    )
     return
   }
   serveStatic(res, url)
 }).listen(port, host, () => {
   console.log(`Flight Aware (free) → http://${host}:${port}`)
-  console.log('Proxy: /api/adsb → adsb.lol (no API key)')
+  console.log('Proxies: /api/adsb → adsb.lol · /api/metar → aviationweather.gov')
 })

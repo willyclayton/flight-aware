@@ -1,3 +1,11 @@
+import { useEffect, useState } from 'react'
+import {
+  fetchLocalWeather,
+  fetchMetar,
+  weatherCodeLabel,
+  type LocalWeather,
+  type MetarSummary,
+} from '../api/weather'
 import {
   formatAltitude,
   formatPosition,
@@ -10,6 +18,8 @@ import type { Aircraft } from '../types/aircraft'
 
 type Props = {
   aircraft: Aircraft | null
+  watched: boolean
+  onToggleWatch: () => void
   onClose: () => void
 }
 
@@ -52,7 +62,47 @@ const FIELDS: Array<{
   { label: 'Position', value: formatPosition, span: true },
 ]
 
-export function FlightPanel({ aircraft, onClose }: Props) {
+export function FlightPanel({
+  aircraft,
+  watched,
+  onToggleWatch,
+  onClose,
+}: Props) {
+  const [weather, setWeather] = useState<LocalWeather | null>(null)
+  const [metar, setMetar] = useState<MetarSummary | null>(null)
+
+  const hex = aircraft?.hex
+  const latBucket = aircraft ? aircraft.lat.toFixed(2) : null
+  const lonBucket = aircraft ? aircraft.lon.toFixed(2) : null
+
+  useEffect(() => {
+    if (hex == null || latBucket == null || lonBucket == null) return
+
+    let cancelled = false
+    const lat = Number(latBucket)
+    const lon = Number(lonBucket)
+
+    const load = async () => {
+      try {
+        const local = await fetchLocalWeather(lat, lon)
+        if (!cancelled) setWeather(local)
+      } catch {
+        if (!cancelled) setWeather(null)
+      }
+      try {
+        const m = await fetchMetar('KLAX')
+        if (!cancelled) setMetar(m)
+      } catch {
+        if (!cancelled) setMetar(null)
+      }
+    }
+
+    void load()
+    return () => {
+      cancelled = true
+    }
+  }, [hex, latBucket, lonBucket])
+
   if (!aircraft) return null
 
   return (
@@ -62,14 +112,23 @@ export function FlightPanel({ aircraft, onClose }: Props) {
           <p className="flight-panel__eyebrow">Live track</p>
           <h2 className="flight-panel__callsign">{aircraft.flight}</h2>
         </div>
-        <button
-          type="button"
-          className="flight-panel__close"
-          onClick={onClose}
-          aria-label="Close flight details"
-        >
-          ×
-        </button>
+        <div className="flight-panel__actions">
+          <button
+            type="button"
+            className={`flight-panel__watch${watched ? ' is-on' : ''}`}
+            onClick={onToggleWatch}
+          >
+            {watched ? 'Watching' : 'Watch'}
+          </button>
+          <button
+            type="button"
+            className="flight-panel__close"
+            onClick={onClose}
+            aria-label="Close flight details"
+          >
+            ×
+          </button>
+        </div>
       </header>
 
       <dl className="flight-panel__grid">
@@ -83,6 +142,34 @@ export function FlightPanel({ aircraft, onClose }: Props) {
           </div>
         ))}
       </dl>
+
+      {weather ? (
+        <section className="flight-panel__weather">
+          <h3>Conditions at aircraft</h3>
+          <p>
+            {weatherCodeLabel(weather.weatherCode)}
+            {weather.temperatureC != null
+              ? ` · ${Math.round(weather.temperatureC)}°C`
+              : ''}
+            {weather.windKmh != null
+              ? ` · wind ${Math.round(weather.windKmh)} km/h`
+              : ''}
+            {weather.visibilityKm != null
+              ? ` · vis ${weather.visibilityKm.toFixed(1)} km`
+              : ''}
+          </p>
+        </section>
+      ) : null}
+
+      {metar ? (
+        <section className="flight-panel__weather">
+          <h3>METAR {metar.station}</h3>
+          <p className="flight-panel__metar">
+            {metar.flightCategory ? `${metar.flightCategory} · ` : ''}
+            {metar.raw}
+          </p>
+        </section>
+      ) : null}
 
       {aircraft.emergency ? (
         <p className="flight-panel__alert">Emergency: {aircraft.emergency}</p>
