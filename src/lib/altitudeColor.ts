@@ -7,7 +7,7 @@ export function colorForAltitude(altFt: number | null, selected: boolean): {
   stroke: string
 } {
   if (selected) {
-    return { fill: '#f5c518', stroke: '#1a1200' }
+    return { fill: '#ffe14a', stroke: '#1a1200' }
   }
   if (altFt === null) {
     return { fill: '#c5d0d8', stroke: '#1a2430' }

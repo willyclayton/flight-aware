@@ -39,29 +39,6 @@ const SHAPE_LABELS: Record<string, string> = {
   unknown: 'Unknown',
 }
 
-const FIELDS: Array<{
-  label: string
-  value: (ac: Aircraft) => string
-  span?: boolean
-}> = [
-  { label: 'ICAO', value: (ac) => ac.hex.toUpperCase() },
-  {
-    label: 'Type',
-    value: (ac) =>
-      ac.type
-        ? `${ac.type} · ${SHAPE_LABELS[resolveAircraftShape(ac)] ?? 'Unknown'}`
-        : (SHAPE_LABELS[resolveAircraftShape(ac)] ?? '—'),
-  },
-  { label: 'Altitude', value: formatAltitude },
-  { label: 'Ground speed', value: formatSpeed },
-  { label: 'Track', value: formatTrack },
-  { label: 'Vertical', value: formatVerticalRate },
-  { label: 'Squawk', value: (ac) => ac.squawk ?? '—' },
-  { label: 'Registration', value: (ac) => ac.registration ?? '—' },
-  { label: 'Category', value: (ac) => ac.category ?? '—' },
-  { label: 'Position', value: formatPosition, span: true },
-]
-
 export function FlightPanel({
   aircraft,
   watched,
@@ -105,24 +82,30 @@ export function FlightPanel({
 
   if (!aircraft) return null
 
+  const shape = SHAPE_LABELS[resolveAircraftShape(aircraft)] ?? 'Unknown'
+
   return (
-    <aside className="flight-panel" aria-live="polite">
-      <header className="flight-panel__header">
+    <aside className="flight-card" aria-live="polite">
+      <header className="flight-card__header">
         <div>
-          <p className="flight-panel__eyebrow">Live track</p>
-          <h2 className="flight-panel__callsign">{aircraft.flight}</h2>
+          <p className="flight-card__ident">
+            {aircraft.registration ?? aircraft.hex.toUpperCase()}
+            {aircraft.type ? ` · ${aircraft.type}` : ''}
+          </p>
+          <h2 className="flight-card__callsign">{aircraft.flight}</h2>
+          <p className="flight-card__shape">{shape}</p>
         </div>
-        <div className="flight-panel__actions">
+        <div className="flight-card__actions">
           <button
             type="button"
-            className={`flight-panel__watch${watched ? ' is-on' : ''}`}
+            className={`flight-card__watch${watched ? ' is-on' : ''}`}
             onClick={onToggleWatch}
           >
             {watched ? 'Watching' : 'Watch'}
           </button>
           <button
             type="button"
-            className="flight-panel__close"
+            className="flight-card__close"
             onClick={onClose}
             aria-label="Close flight details"
           >
@@ -131,21 +114,43 @@ export function FlightPanel({
         </div>
       </header>
 
-      <dl className="flight-panel__grid">
-        {FIELDS.map((field) => (
-          <div
-            key={field.label}
-            className={field.span ? 'flight-panel__span' : undefined}
-          >
-            <dt>{field.label}</dt>
-            <dd>{field.value(aircraft)}</dd>
-          </div>
-        ))}
+      <div className="flight-card__stats">
+        <div>
+          <span>Altitude</span>
+          <strong>{formatAltitude(aircraft)}</strong>
+        </div>
+        <div>
+          <span>Speed</span>
+          <strong>{formatSpeed(aircraft)}</strong>
+        </div>
+        <div>
+          <span>Track</span>
+          <strong>{formatTrack(aircraft)}</strong>
+        </div>
+        <div>
+          <span>VS</span>
+          <strong>{formatVerticalRate(aircraft)}</strong>
+        </div>
+      </div>
+
+      <dl className="flight-card__meta">
+        <div>
+          <dt>Squawk</dt>
+          <dd>{aircraft.squawk ?? '—'}</dd>
+        </div>
+        <div>
+          <dt>ICAO</dt>
+          <dd>{aircraft.hex.toUpperCase()}</dd>
+        </div>
+        <div className="flight-card__span">
+          <dt>Position</dt>
+          <dd>{formatPosition(aircraft)}</dd>
+        </div>
       </dl>
 
       {weather ? (
-        <section className="flight-panel__weather">
-          <h3>Conditions at aircraft</h3>
+        <section className="flight-card__weather">
+          <h3>Conditions</h3>
           <p>
             {weatherCodeLabel(weather.weatherCode)}
             {weather.temperatureC != null
@@ -154,17 +159,14 @@ export function FlightPanel({
             {weather.windKmh != null
               ? ` · wind ${Math.round(weather.windKmh)} km/h`
               : ''}
-            {weather.visibilityKm != null
-              ? ` · vis ${weather.visibilityKm.toFixed(1)} km`
-              : ''}
           </p>
         </section>
       ) : null}
 
       {metar ? (
-        <section className="flight-panel__weather">
+        <section className="flight-card__weather">
           <h3>METAR {metar.station}</h3>
-          <p className="flight-panel__metar">
+          <p className="flight-card__metar">
             {metar.flightCategory ? `${metar.flightCategory} · ` : ''}
             {metar.raw}
           </p>
@@ -172,7 +174,7 @@ export function FlightPanel({
       ) : null}
 
       {aircraft.emergency ? (
-        <p className="flight-panel__alert">Emergency: {aircraft.emergency}</p>
+        <p className="flight-card__alert">Emergency: {aircraft.emergency}</p>
       ) : null}
     </aside>
   )

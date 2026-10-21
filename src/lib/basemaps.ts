@@ -13,7 +13,7 @@ export type BasemapConfig = {
 export const BASEMAPS: Record<BasemapId, BasemapConfig> = {
   dark: {
     id: 'dark',
-    label: 'Classic dark',
+    label: 'Classic',
     url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     attribution: '&copy; OpenStreetMap',
     nightFilter: true,

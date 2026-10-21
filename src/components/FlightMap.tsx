@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import {
   MapContainer,
+  ScaleControl,
   TileLayer,
-  ZoomControl,
   useMap,
 } from 'react-leaflet'
 import {
@@ -16,6 +16,8 @@ import type { Aircraft } from '../types/aircraft'
 import type { FlyToTarget, MapViewport } from '../types/map'
 import type { TrailMap } from '../hooks/useTrackHistory'
 import { AircraftLayer } from './AircraftLayer'
+import { AirportLayer } from './AirportLayer'
+import { LocateControl } from './LocateControl'
 import { MapViewportSync } from './MapViewportSync'
 import { TrackTrails } from './TrackTrails'
 import 'leaflet/dist/leaflet.css'
@@ -29,6 +31,7 @@ type Props = {
   basemap: BasemapId
   showRadar: boolean
   showSatelliteIr: boolean
+  showAirports: boolean
   trails: TrailMap
   watchHexes: Set<string>
   onRadarAge: (label: string | null) => void
@@ -135,6 +138,7 @@ export function FlightMap({
   basemap,
   showRadar,
   showSatelliteIr,
+  showAirports,
   trails,
   watchHexes,
   onRadarAge,
@@ -162,8 +166,10 @@ export function FlightMap({
         showSatelliteIr={showSatelliteIr}
         onRadarAge={onRadarAge}
       />
-      <ZoomControl position="topleft" />
+      <LocateControl />
+      <ScaleControl position="bottomleft" imperial metric maxWidth={140} />
       <MapViewportSync onChange={onViewportChange} />
+      <AirportLayer enabled={showAirports} />
       <TrackTrails
         trails={trails}
         selectedHex={selectedHex}

@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { searchAircraft } from './api/adsb'
 import { AlertToasts } from './components/AlertToasts'
+import { BrandMark } from './components/BrandMark'
+import { FiltersPanel } from './components/FiltersPanel'
 import { FlightMap } from './components/FlightMap'
 import { FlightPanel } from './components/FlightPanel'
 import { Hud } from './components/Hud'
@@ -8,10 +10,17 @@ import {
   LayersPanel,
   type LayerSettings,
 } from './components/LayersPanel'
+import { MapTools } from './components/MapTools'
 import { useEmergencyAlerts } from './hooks/useEmergencyAlerts'
 import { useNearbyAircraft } from './hooks/useNearbyAircraft'
 import { useTrackHistory } from './hooks/useTrackHistory'
 import { useWatchlist } from './hooks/useWatchlist'
+import {
+  aircraftPassesFilters,
+  DEFAULT_FILTERS,
+  filtersActive,
+  type TrafficFilters,
+} from './lib/filters'
 import type { Aircraft } from './types/aircraft'
 import type { FlyToTarget, MapViewport } from './types/map'
 
@@ -20,7 +29,10 @@ const DEFAULT_LAYERS: LayerSettings = {
   radar: true,
   satelliteIr: false,
   trails: true,
+  airports: true,
 }
+
+type OpenPanel = 'layers' | 'filters' | null
 
 export default function App() {
   const [viewport, setViewport] = useState<MapViewport | null>(null)
@@ -29,12 +41,13 @@ export default function App() {
   const [flyTo, setFlyTo] = useState<FlyToTarget | null>(null)
   const [searchBusy, setSearchBusy] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
-  const [layersOpen, setLayersOpen] = useState(false)
+  const [openPanel, setOpenPanel] = useState<OpenPanel>(null)
   const [layers, setLayers] = useState<LayerSettings>(DEFAULT_LAYERS)
+  const [filters, setFilters] = useState<TrafficFilters>(DEFAULT_FILTERS)
   const [radarAge, setRadarAge] = useState<string | null>(null)
   const flyToken = useRef(0)
 
-  const { aircraft, loading, error, updatedAt } = useNearbyAircraft(viewport)
+  const { aircraft, loading, error } = useNearbyAircraft(viewport)
   const watchlist = useWatchlist()
   const { alerts, dismiss } = useEmergencyAlerts(aircraft)
 
@@ -44,20 +57,32 @@ export default function App() {
     return [...aircraft, pinned]
   }, [aircraft, pinned])
 
-  const trails = useTrackHistory(mergedAircraft, layers.trails)
+  const visibleAircraft = useMemo(
+    () =>
+      mergedAircraft.filter(
+        (ac) =>
+          ac.hex === selectedHex ||
+          ac.hex === pinned?.hex ||
+          aircraftPassesFilters(ac, filters),
+      ),
+    [mergedAircraft, filters, selectedHex, pinned],
+  )
+
+  const trails = useTrackHistory(visibleAircraft, layers.trails)
   const watchHexes = useMemo(
     () => new Set(watchlist.items.map((item) => item.hex)),
     [watchlist.items],
   )
 
   const selected =
-    mergedAircraft.find((ac) => ac.hex === selectedHex) ??
+    visibleAircraft.find((ac) => ac.hex === selectedHex) ??
     (pinned?.hex === selectedHex ? pinned : null)
 
   const onSelect = useCallback((ac: Aircraft) => {
     setSelectedHex(ac.hex)
     setPinned(ac)
     setSearchError(null)
+    setOpenPanel(null)
   }, [])
 
   const onClosePanel = useCallback(() => {
@@ -73,6 +98,7 @@ export default function App() {
       if (hit) {
         setSelectedHex(hit.hex)
         setPinned(hit)
+        setOpenPanel(null)
         setFlyTo({
           lat: hit.lat,
           lon: hit.lon,
@@ -90,6 +116,7 @@ export default function App() {
         }
         setPinned(found)
         setSelectedHex(found.hex)
+        setOpenPanel(null)
         setFlyTo({
           lat: found.lat,
           lon: found.lon,
@@ -120,6 +147,7 @@ export default function App() {
       const hit = results[0]
       setPinned(hit)
       setSelectedHex(hit.hex)
+      setOpenPanel(null)
       setFlyTo({
         lat: hit.lat,
         lon: hit.lon,
@@ -133,10 +161,14 @@ export default function App() {
     }
   }, [])
 
+  const toggleTool = useCallback((panel: 'layers' | 'filters') => {
+    setOpenPanel((prev) => (prev === panel ? null : panel))
+  }, [])
+
   return (
     <div className="app-shell">
       <FlightMap
-        aircraft={mergedAircraft}
+        aircraft={visibleAircraft}
         selectedHex={selectedHex}
         onSelect={onSelect}
         onViewportChange={setViewport}
@@ -144,30 +176,43 @@ export default function App() {
         basemap={layers.basemap}
         showRadar={layers.radar}
         showSatelliteIr={layers.satelliteIr}
+        showAirports={layers.airports}
         trails={trails}
         watchHexes={watchHexes}
         onRadarAge={setRadarAge}
       />
 
       <Hud
-        aircraftCount={mergedAircraft.length}
+        aircraftCount={visibleAircraft.length}
         loading={loading}
         error={error}
-        updatedAt={updatedAt}
         searchBusy={searchBusy}
         searchError={searchError}
         onSearch={onSearch}
       />
 
+      <MapTools
+        open={openPanel}
+        onToggle={toggleTool}
+        filtersActive={filtersActive(filters)}
+      />
+
       <LayersPanel
-        open={layersOpen}
-        onToggleOpen={() => setLayersOpen((v) => !v)}
+        open={openPanel === 'layers'}
         settings={layers}
         onChange={setLayers}
+        onClose={() => setOpenPanel(null)}
         watchlist={watchlist.items}
         onRemoveWatch={watchlist.remove}
         onFocusWatch={(hex, flight) => focusHex(hex, flight)}
         radarAge={radarAge}
+      />
+
+      <FiltersPanel
+        open={openPanel === 'filters'}
+        filters={filters}
+        onChange={setFilters}
+        onClose={() => setOpenPanel(null)}
       />
 
       <AlertToasts
@@ -186,8 +231,10 @@ export default function App() {
         onClose={onClosePanel}
       />
 
-      <footer className="map-credit">
-        Free Pro suite · adsb.fi · RainViewer · Open-Meteo · OSM
+      <BrandMark />
+
+      <footer className="map-attrib">
+        © Flight Aware · OSM · adsb.fi
       </footer>
     </div>
   )

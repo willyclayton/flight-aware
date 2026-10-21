@@ -9,7 +9,7 @@ type Props = {
   onSelect: (aircraft: Aircraft) => void
 }
 
-const LABEL_MIN_ZOOM = 9
+const LABEL_MIN_ZOOM = 10
 
 export function AircraftLayer({ aircraft, selectedHex, onSelect }: Props) {
   const map = useMap()
