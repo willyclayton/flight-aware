@@ -5,7 +5,9 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: npm ci && npm run build
+    # --include=dev: Render sets NODE_ENV=production for the whole
+    # service lifecycle, which would otherwise skip vite/typescript types.
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /
     envVars:
@@ -13,3 +15,5 @@ services:
         value: production
       - key: HOST
         value: 0.0.0.0
+      - key: NODE_VERSION
+        value: "22.16.0"
