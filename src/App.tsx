@@ -1,25 +1,20 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { searchAircraft } from './api/adsb'
 import { FlightMap } from './components/FlightMap'
 import { FlightPanel } from './components/FlightPanel'
-import { SearchBar } from './components/SearchBar'
-import {
-  useNearbyAircraft,
-  type MapViewport,
-} from './hooks/useNearbyAircraft'
+import { Hud } from './components/Hud'
+import { useNearbyAircraft } from './hooks/useNearbyAircraft'
 import type { Aircraft } from './types/aircraft'
+import type { FlyToTarget, MapViewport } from './types/map'
 
 export default function App() {
   const [viewport, setViewport] = useState<MapViewport | null>(null)
   const [selectedHex, setSelectedHex] = useState<string | null>(null)
+  const [pinned, setPinned] = useState<Aircraft | null>(null)
+  const [flyTo, setFlyTo] = useState<FlyToTarget | null>(null)
   const [searchBusy, setSearchBusy] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
-  const [flyTo, setFlyTo] = useState<{
-    lat: number
-    lon: number
-    zoom?: number
-  } | null>(null)
-  const [pinned, setPinned] = useState<Aircraft | null>(null)
+  const flyToken = useRef(0)
 
   const { aircraft, loading, error, updatedAt } = useNearbyAircraft(viewport)
 
@@ -39,21 +34,36 @@ export default function App() {
     setSearchError(null)
   }, [])
 
+  const onClosePanel = useCallback(() => {
+    setSelectedHex(null)
+    setPinned(null)
+  }, [])
+
   const onSearch = useCallback(async (query: string) => {
     const q = query.trim()
     if (!q) return
+
     setSearchBusy(true)
     setSearchError(null)
+
     try {
       const results = await searchAircraft(q)
       if (!results.length) {
-        setSearchError(`No live traffic for “${q}”. Try a full callsign or 6-char hex.`)
+        setSearchError(
+          `No live traffic for “${q}”. Try a full callsign or 6-char hex.`,
+        )
         return
       }
+
       const hit = results[0]
       setPinned(hit)
       setSelectedHex(hit.hex)
-      setFlyTo({ lat: hit.lat, lon: hit.lon, zoom: 10 })
+      setFlyTo({
+        lat: hit.lat,
+        lon: hit.lon,
+        zoom: 10,
+        token: ++flyToken.current,
+      })
     } catch (err) {
       setSearchError(err instanceof Error ? err.message : 'Search failed')
     } finally {
@@ -71,42 +81,17 @@ export default function App() {
         flyTo={flyTo}
       />
 
-      <div className="hud">
-        <header className="brand">
-          <span className="brand__mark" aria-hidden="true" />
-          <div>
-            <p className="brand__name">Flight Aware</p>
-            <p className="brand__tag">Live ADS-B map</p>
-          </div>
-        </header>
-
-        <SearchBar onSearch={onSearch} busy={searchBusy} />
-
-        <div className="status-chip" role="status">
-          <span className={`status-chip__dot${loading ? ' is-loading' : ''}`} />
-          <span>
-            {error
-              ? error
-              : `${mergedAircraft.length} aircraft in view`}
-            {updatedAt ? (
-              <span className="status-chip__time">
-                {' '}
-                · updated {new Date(updatedAt).toLocaleTimeString()}
-              </span>
-            ) : null}
-          </span>
-        </div>
-
-        {searchError ? <p className="toast toast--error">{searchError}</p> : null}
-      </div>
-
-      <FlightPanel
-        aircraft={selected}
-        onClose={() => {
-          setSelectedHex(null)
-          setPinned(null)
-        }}
+      <Hud
+        aircraftCount={mergedAircraft.length}
+        loading={loading}
+        error={error}
+        updatedAt={updatedAt}
+        searchBusy={searchBusy}
+        searchError={searchError}
+        onSearch={onSearch}
       />
+
+      <FlightPanel aircraft={selected} onClose={onClosePanel} />
 
       <footer className="map-credit">
         Free traffic via adsb.lol · Map © OpenStreetMap

@@ -1,45 +1,43 @@
 # Flight Aware
 
-Live ADS-B flight tracker with a full-bleed dark aviation map.
+Live ADS-B flight tracker — full-bleed dark map, vicinity traffic, callsign/hex search.
 
-**$0 to run — no API keys, accounts, or paid services.**
+**Free to run: no API keys, accounts, or paid services.**
 
-Inspired by UX patterns observed on FlightAware’s live map (via [REA](https://github.com/morluto/rea)): vicinity traffic, callsign/hex search, and a detail panel. Aircraft data comes from the free public [adsb.lol](https://adsb.lol) API. The basemap is free [OpenStreetMap](https://www.openstreetmap.org/copyright) tiles (darkened in CSS). Fonts are self-hosted via npm.
-
-## Run
+## Quick start
 
 ```bash
 npm install
 npm run dev
 ```
 
-Or production locally:
+Production locally:
 
 ```bash
 npm run build
 npm start
 ```
 
-Both `dev` / `preview` and `npm start` proxy `/api/adsb` → `https://api.adsb.lol` so the browser never needs CORS or a key.
+## Stack (all free)
 
-## Free stack
+| Piece | Source |
+| --- | --- |
+| Live aircraft | [adsb.lol](https://api.adsb.lol) (rate-limited, no key) |
+| Map tiles | [OpenStreetMap](https://www.openstreetmap.org/copyright) + CSS dark filter |
+| Fonts | `@fontsource/*` (bundled) |
+| Proxy | Vite / `npm start` → `/api/adsb` |
 
-| Piece | Source | Cost / key |
-| --- | --- | --- |
-| Live aircraft | [adsb.lol](https://api.adsb.lol) | Free, no key (rate-limited) |
-| Map tiles | OpenStreetMap | Free, no key |
-| Fonts | `@fontsource/*` (bundled) | Free, offline |
-| App shell | Vite + React + Leaflet | Free |
+## Scripts
 
-## Features
-
-- Live aircraft in the current map viewport (auto-refresh)
-- Track by callsign or ICAO24 hex
-- Selected-flight panel: altitude, ground speed, track, vertical rate, squawk
-- Dark OSM basemap with heading-aware aircraft markers
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Vite dev server + ADS-B proxy |
+| `npm run build` | Typecheck + production bundle |
+| `npm start` | Serve `dist/` with ADS-B proxy |
+| `npm run lint` | Oxlint |
 
 ## Notes
 
-- adsb.lol rate-limits anonymous traffic (~4 req/s, 60/min); pan/zoom refreshes are debounced.
+- Traffic refreshes are debounced; adsb.lol limits anonymous clients (~4 req/s, 60/min).
 - Coverage follows ADS-B receiver density (strongest over US/Europe).
-- Please keep OSM tile usage modest (personal / low traffic); for heavy public load, self-host tiles.
+- Keep OSM tile usage modest for personal/low traffic use.

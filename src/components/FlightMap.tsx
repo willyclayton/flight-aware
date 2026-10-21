@@ -5,8 +5,14 @@ import {
   ZoomControl,
   useMap,
 } from 'react-leaflet'
+import {
+  DEFAULT_MAP_CENTER,
+  DEFAULT_MAP_ZOOM,
+  OSM_ATTRIBUTION,
+  OSM_TILE_URL,
+} from '../lib/constants'
 import type { Aircraft } from '../types/aircraft'
-import type { MapViewport } from '../hooks/useNearbyAircraft'
+import type { FlyToTarget, MapViewport } from '../types/map'
 import { AircraftLayer } from './AircraftLayer'
 import { MapViewportSync } from './MapViewportSync'
 import 'leaflet/dist/leaflet.css'
@@ -16,24 +22,21 @@ type Props = {
   selectedHex: string | null
   onSelect: (aircraft: Aircraft) => void
   onViewportChange: (viewport: MapViewport) => void
-  flyTo?: { lat: number; lon: number; zoom?: number } | null
+  flyTo: FlyToTarget | null
 }
 
-const DEFAULT_CENTER: [number, number] = [34.05, -118.25]
-const DEFAULT_ZOOM = 9
-
-function FlyToInner({
-  target,
-}: {
-  target: { lat: number; lon: number; zoom?: number } | null
-}) {
+function FlyTo({ target }: { target: FlyToTarget | null }) {
   const map = useMap()
+
   useEffect(() => {
     if (!target) return
-    map.flyTo([target.lat, target.lon], target.zoom ?? Math.max(map.getZoom(), 9), {
-      duration: 1.1,
-    })
+    map.flyTo(
+      [target.lat, target.lon],
+      target.zoom ?? Math.max(map.getZoom(), DEFAULT_MAP_ZOOM),
+      { duration: 1.1 },
+    )
   }, [target, map])
+
   return null
 }
 
@@ -46,20 +49,15 @@ export function FlightMap({
 }: Props) {
   return (
     <MapContainer
-      center={DEFAULT_CENTER}
-      zoom={DEFAULT_ZOOM}
+      center={DEFAULT_MAP_CENTER}
+      zoom={DEFAULT_MAP_ZOOM}
       className="flight-map"
       zoomControl={false}
       attributionControl={false}
       minZoom={3}
       maxZoom={16}
     >
-      <TileLayer
-        // OpenStreetMap — free, no API key (fair-use tile policy)
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution="&copy; OpenStreetMap contributors"
-        className="basemap-tiles"
-      />
+      <TileLayer url={OSM_TILE_URL} attribution={OSM_ATTRIBUTION} />
       <ZoomControl position="topleft" />
       <MapViewportSync onChange={onViewportChange} />
       <AircraftLayer
@@ -67,7 +65,7 @@ export function FlightMap({
         selectedHex={selectedHex}
         onSelect={onSelect}
       />
-      <FlyToInner target={flyTo ?? null} />
+      <FlyTo target={flyTo} />
     </MapContainer>
   )
 }

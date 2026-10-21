@@ -1,19 +1,19 @@
 import { useEffect, useRef } from 'react'
-import type { Map as LeafletMap } from 'leaflet'
 import { useMap, useMapEvents } from 'react-leaflet'
-import type { MapViewport } from '../hooks/useNearbyAircraft'
+import { radiusNmFromMap } from '../lib/geo'
+import type { MapViewport } from '../types/map'
 
 type Props = {
   onChange: (viewport: MapViewport) => void
 }
 
-function radiusFromBounds(map: LeafletMap): number {
-  const bounds = map.getBounds()
-  const center = bounds.getCenter()
-  const ne = bounds.getNorthEast()
-  const meters = map.distance(center, ne)
-  const nm = meters / 1852
-  return Math.max(15, Math.min(220, nm * 0.95))
+function readViewport(map: ReturnType<typeof useMap>): MapViewport {
+  const center = map.getCenter()
+  return {
+    lat: center.lat,
+    lon: center.lng,
+    radiusNm: radiusNmFromMap(map),
+  }
 }
 
 export function MapViewportSync({ onChange }: Props) {
@@ -25,30 +25,15 @@ export function MapViewportSync({ onChange }: Props) {
   }, [onChange])
 
   useEffect(() => {
-    const center = map.getCenter()
-    onChangeRef.current({
-      lat: center.lat,
-      lon: center.lng,
-      radiusNm: radiusFromBounds(map),
-    })
+    onChangeRef.current(readViewport(map))
   }, [map])
 
   useMapEvents({
     moveend() {
-      const center = map.getCenter()
-      onChangeRef.current({
-        lat: center.lat,
-        lon: center.lng,
-        radiusNm: radiusFromBounds(map),
-      })
+      onChangeRef.current(readViewport(map))
     },
     zoomend() {
-      const center = map.getCenter()
-      onChangeRef.current({
-        lat: center.lat,
-        lon: center.lng,
-        radiusNm: radiusFromBounds(map),
-      })
+      onChangeRef.current(readViewport(map))
     },
   })
 

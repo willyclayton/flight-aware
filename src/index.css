@@ -1,3 +1,4 @@
+/* —— Tokens —— */
 :root {
   --bg: #061018;
   --panel: rgba(8, 22, 32, 0.92);
@@ -47,12 +48,14 @@ input {
   font: inherit;
 }
 
+/* —— Shell —— */
 .app-shell {
   position: relative;
   width: 100%;
   height: 100%;
 }
 
+/* —— Map —— */
 .flight-map {
   position: absolute;
   inset: 0;
@@ -60,18 +63,17 @@ input {
   background: #040b11;
 }
 
-/* Dark aviation look from free OSM tiles — no Mapbox/Carto/Esri key */
 .flight-map .leaflet-tile-pane {
   filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.92) saturate(0.4);
 }
 
 .flight-map .leaflet-control-zoom a {
-  background: var(--panel) !important;
-  color: var(--ink) !important;
-  border-color: var(--panel-border) !important;
   width: 34px;
   height: 34px;
   line-height: 34px;
+  color: var(--ink) !important;
+  background: var(--panel) !important;
+  border-color: var(--panel-border) !important;
   backdrop-filter: blur(10px);
 }
 
@@ -113,15 +115,16 @@ input {
   }
 }
 
+/* —— HUD —— */
 .hud {
   position: absolute;
   z-index: 500;
   top: 1.1rem;
   left: 50%;
-  transform: translateX(-50%);
   width: min(560px, calc(100% - 1.5rem));
   display: grid;
   gap: 0.75rem;
+  transform: translateX(-50%);
   pointer-events: none;
   animation: hud-in 0.7s ease both;
 }
@@ -147,9 +150,9 @@ input {
   gap: 0.7rem;
   width: fit-content;
   padding: 0.55rem 0.85rem 0.55rem 0.65rem;
+  border: 1px solid var(--panel-border);
   border-radius: 999px;
   background: var(--panel);
-  border: 1px solid var(--panel-border);
   box-shadow: var(--shadow);
   backdrop-filter: blur(12px);
 }
@@ -170,8 +173,8 @@ input {
   font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
   line-height: 1;
+  text-transform: uppercase;
 }
 
 .brand__tag {
@@ -184,9 +187,9 @@ input {
 
 .search-bar {
   padding: 0.85rem 0.95rem;
+  border: 1px solid var(--panel-border);
   border-radius: 1rem;
   background: var(--panel);
-  border: 1px solid var(--panel-border);
   box-shadow: var(--shadow);
   backdrop-filter: blur(14px);
 }
@@ -208,14 +211,14 @@ input {
 .search-bar__input {
   flex: 1;
   min-width: 0;
+  padding: 0.7rem 0.85rem;
   border: 1px solid rgba(125, 196, 188, 0.28);
   border-radius: 0.7rem;
-  background: rgba(4, 14, 20, 0.75);
   color: var(--ink);
-  padding: 0.7rem 0.85rem;
-  outline: none;
+  background: rgba(4, 14, 20, 0.75);
   font-family: var(--font-mono);
   font-size: 0.92rem;
+  outline: none;
 }
 
 .search-bar__input:focus {
@@ -224,11 +227,11 @@ input {
 }
 
 .search-bar__button {
+  padding: 0.7rem 1.05rem;
   border: none;
   border-radius: 0.7rem;
-  padding: 0.7rem 1.05rem;
-  background: linear-gradient(180deg, #4be0d0, #2bb8aa);
   color: #042018;
+  background: linear-gradient(180deg, #4be0d0, #2bb8aa);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -253,10 +256,10 @@ input {
   width: fit-content;
   max-width: 100%;
   padding: 0.45rem 0.75rem;
-  border-radius: 999px;
-  background: rgba(6, 18, 26, 0.78);
   border: 1px solid rgba(125, 196, 188, 0.18);
+  border-radius: 999px;
   color: var(--muted);
+  background: rgba(6, 18, 26, 0.78);
   font-size: 0.8rem;
   backdrop-filter: blur(10px);
 }
@@ -293,11 +296,14 @@ input {
   margin: 0;
   padding: 0.7rem 0.85rem;
   border-radius: 0.8rem;
-  background: rgba(40, 12, 12, 0.9);
-  border: 1px solid rgba(232, 93, 76, 0.4);
-  color: #ffd5cf;
   font-size: 0.88rem;
   animation: toast-in 0.35s ease both;
+}
+
+.toast--error {
+  border: 1px solid rgba(232, 93, 76, 0.4);
+  color: #ffd5cf;
+  background: rgba(40, 12, 12, 0.9);
 }
 
 @keyframes toast-in {
@@ -311,6 +317,7 @@ input {
   }
 }
 
+/* —— Detail panel —— */
 .flight-panel {
   position: absolute;
   z-index: 600;
@@ -318,9 +325,9 @@ input {
   right: 1.1rem;
   width: min(320px, calc(100% - 2rem));
   padding: 1rem 1.05rem 1.1rem;
+  border: 1px solid var(--panel-border);
   border-radius: 1.1rem;
   background: var(--panel);
-  border: 1px solid var(--panel-border);
   box-shadow: var(--shadow);
   backdrop-filter: blur(16px);
   animation: panel-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -339,9 +346,9 @@ input {
 
 .flight-panel__header {
   display: flex;
+  align-items: start;
   justify-content: space-between;
   gap: 0.75rem;
-  align-items: start;
   margin-bottom: 0.9rem;
 }
 
@@ -363,15 +370,15 @@ input {
 }
 
 .flight-panel__close {
-  border: 1px solid rgba(125, 196, 188, 0.25);
-  background: transparent;
-  color: var(--muted);
   width: 2rem;
   height: 2rem;
+  border: 1px solid rgba(125, 196, 188, 0.25);
   border-radius: 0.55rem;
-  cursor: pointer;
+  color: var(--muted);
+  background: transparent;
   font-size: 1.2rem;
   line-height: 1;
+  cursor: pointer;
 }
 
 .flight-panel__close:hover {
@@ -406,10 +413,10 @@ input {
 .flight-panel__alert {
   margin: 0.9rem 0 0;
   padding: 0.55rem 0.7rem;
-  border-radius: 0.6rem;
-  background: rgba(232, 93, 76, 0.15);
   border: 1px solid rgba(232, 93, 76, 0.4);
+  border-radius: 0.6rem;
   color: #ffc4bc;
+  background: rgba(232, 93, 76, 0.15);
   font-size: 0.85rem;
 }
 
@@ -421,13 +428,14 @@ input {
   margin: 0;
   padding: 0.35rem 0.55rem;
   border-radius: 0.45rem;
-  background: rgba(4, 12, 18, 0.72);
   color: #6f8491;
+  background: rgba(4, 12, 18, 0.72);
   font-size: 0.68rem;
   letter-spacing: 0.02em;
   pointer-events: none;
 }
 
+/* —— Mobile —— */
 @media (max-width: 720px) {
   .hud {
     top: 0.75rem;
@@ -438,16 +446,16 @@ input {
     display: none;
   }
 
+  .search-bar__row {
+    flex-direction: column;
+  }
+
   .flight-panel {
     top: auto;
     right: 0.75rem;
-    left: 0.75rem;
     bottom: 0.75rem;
+    left: 0.75rem;
     width: auto;
-  }
-
-  .search-bar__row {
-    flex-direction: column;
   }
 
   .map-credit {

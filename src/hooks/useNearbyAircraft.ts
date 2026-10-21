@@ -1,29 +1,28 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchNearby } from '../api/adsb'
+import { TRAFFIC_REFRESH_MS, VIEWPORT_DEBOUNCE_MS } from '../lib/constants'
 import type { Aircraft } from '../types/aircraft'
+import type { MapViewport } from '../types/map'
 
-export type MapViewport = {
-  lat: number
-  lon: number
-  radiusNm: number
-}
-
-type State = {
+type TrafficState = {
   aircraft: Aircraft[]
   loading: boolean
   error: string | null
   updatedAt: number | null
 }
 
-const EMPTY: State = {
+const EMPTY: TrafficState = {
   aircraft: [],
   loading: false,
   error: null,
   updatedAt: null,
 }
 
-export function useNearbyAircraft(viewport: MapViewport | null, refreshMs = 8000) {
-  const [state, setState] = useState<State>(EMPTY)
+export function useNearbyAircraft(
+  viewport: MapViewport | null,
+  refreshMs = TRAFFIC_REFRESH_MS,
+) {
+  const [state, setState] = useState<TrafficState>(EMPTY)
   const requestId = useRef(0)
 
   const lat = viewport?.lat
@@ -52,12 +51,13 @@ export function useNearbyAircraft(viewport: MapViewport | null, refreshMs = 8000
         setState((prev) => ({
           ...prev,
           loading: false,
-          error: error instanceof Error ? error.message : 'Failed to load traffic',
+          error:
+            error instanceof Error ? error.message : 'Failed to load traffic',
         }))
       }
     }
 
-    const debounce = window.setTimeout(load, 350)
+    const debounce = window.setTimeout(load, VIEWPORT_DEBOUNCE_MS)
     const interval = window.setInterval(load, refreshMs)
 
     return () => {

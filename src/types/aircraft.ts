@@ -11,10 +11,7 @@ export type Aircraft = {
   track?: number
   baroRate?: number
   squawk?: string
-  category?: string
   emergency?: string
-  seen?: number
-  seenPos?: number
 }
 
 export type AdsbAircraftRaw = {
@@ -30,10 +27,7 @@ export type AdsbAircraftRaw = {
   track?: number
   baro_rate?: number
   squawk?: string
-  category?: string
   emergency?: string
-  seen?: number
-  seen_pos?: number
 }
 
 export type AdsbResponse = {

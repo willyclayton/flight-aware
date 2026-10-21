@@ -1,11 +1,12 @@
 import L from 'leaflet'
+import { PLANE_COLORS } from '../lib/constants'
 
 function colorForAltitude(altFt: number | null): string {
-  if (altFt === null) return '#7a93a3'
-  if (altFt <= 0) return '#f0b429'
-  if (altFt < 10000) return '#7ee0ff'
-  if (altFt < 25000) return '#3dd6c6'
-  return '#a8f0e4'
+  if (altFt === null) return PLANE_COLORS.unknown
+  if (altFt <= 0) return PLANE_COLORS.ground
+  if (altFt < 10_000) return PLANE_COLORS.low
+  if (altFt < 25_000) return PLANE_COLORS.mid
+  return PLANE_COLORS.high
 }
 
 export function createPlaneIcon(
@@ -13,7 +14,7 @@ export function createPlaneIcon(
   selected: boolean,
   altFt: number | null,
 ): L.DivIcon {
-  const color = selected ? '#f0b429' : colorForAltitude(altFt)
+  const color = selected ? PLANE_COLORS.selected : colorForAltitude(altFt)
   const rotation = typeof trackDeg === 'number' ? trackDeg : 0
   const size = selected ? 28 : 22
 
