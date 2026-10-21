@@ -9,7 +9,8 @@ import { fileURLToPath } from 'node:url'
 
 const root = resolve(fileURLToPath(new URL('.', import.meta.url)), '..')
 const dist = join(root, 'dist')
-const host = process.env.HOST || '127.0.0.1'
+// Bind on all interfaces in production hosts (Render/Railway/Fly/Docker).
+const host = process.env.HOST || '0.0.0.0'
 const port = Number(process.env.PORT || 4173)
 
 const mime = new Map([
