@@ -42,7 +42,7 @@ async function fetchAdsb(path: string): Promise<Aircraft[]> {
   }
 
   const data = (await response.json()) as AdsbResponse
-  return (data.ac ?? [])
+  return (data.ac ?? data.aircraft ?? [])
     .map(normalize)
     .filter((aircraft): aircraft is Aircraft => aircraft !== null)
 }
@@ -54,7 +54,10 @@ export function fetchNearby(
   radiusNm: number,
 ): Promise<Aircraft[]> {
   const r = Math.max(1, Math.min(250, Math.round(radiusNm)))
-  return fetchAdsb(`/v2/point/${lat.toFixed(4)}/${lon.toFixed(4)}/${r}`)
+  // lat/lon/dist works on both adsb.fi and adsb.lol (point/ is lol-only).
+  return fetchAdsb(
+    `/v2/lat/${lat.toFixed(4)}/lon/${lon.toFixed(4)}/dist/${r}`,
+  )
 }
 
 export function fetchByCallsign(callsign: string): Promise<Aircraft[]> {

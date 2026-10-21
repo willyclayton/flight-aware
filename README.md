@@ -66,7 +66,7 @@ Same image works on Railway, Fly.io, or any container host.
 
 | Piece | Source |
 | --- | --- |
-| Live aircraft | [adsb.lol](https://api.adsb.lol) |
+| Live aircraft | [adsb.fi](https://opendata.adsb.fi) + [adsb.lol](https://api.adsb.lol) (proxied, cached) |
 | Radar / IR | [RainViewer](https://www.rainviewer.com/api.html) |
 | Local weather | [Open-Meteo](https://open-meteo.com/) |
 | METAR | [aviationweather.gov](https://aviationweather.gov/) |
@@ -84,5 +84,5 @@ Same image works on Railway, Fly.io, or any container host.
 ## Notes
 
 - Render free services sleep after idle; first load can take ~30s.
-- adsb.lol rate-limits anonymous clients; keep map refresh modest.
+- Free ADS-B feeds rate-limit shared cloud IPs; the production proxy caches (~7s) and fails over between adsb.fi and adsb.lol.
 - Prefer fair use of OSM tiles on a public URL.

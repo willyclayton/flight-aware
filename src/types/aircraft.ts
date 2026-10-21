@@ -36,6 +36,8 @@ export type AdsbAircraftRaw = {
 
 export type AdsbResponse = {
   ac?: AdsbAircraftRaw[]
+  /** Some feeds (adsb.fi nearby) use `aircraft` instead of `ac`. */
+  aircraft?: AdsbAircraftRaw[]
   msg?: string
   now?: number
   total?: number
