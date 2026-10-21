@@ -35,9 +35,9 @@ Or use the deploy button after the Blueprint is linked to your account:
 ### Option B — Render manual
 
 1. **New → Web Service** → this GitHub repo  
-2. Build: `npm ci && npm run build`  
+2. Build: `npm ci --include=dev && npm run build`  
 3. Start: `npm start`  
-4. Env: `HOST=0.0.0.0` (PORT is set by Render)
+4. Env: `HOST=0.0.0.0`, Node 22 (PORT is set by Render)
 
 ### Option C — Docker
 
