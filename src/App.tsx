@@ -109,7 +109,7 @@ export default function App() {
       />
 
       <footer className="map-credit">
-        Traffic via adsb.lol · Basemap © Esri
+        Free traffic via adsb.lol · Map © OpenStreetMap
       </footer>
     </div>
   )

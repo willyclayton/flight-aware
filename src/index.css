@@ -60,6 +60,11 @@ input {
   background: #040b11;
 }
 
+/* Dark aviation look from free OSM tiles — no Mapbox/Carto/Esri key */
+.flight-map .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.92) saturate(0.4);
+}
+
 .flight-map .leaflet-control-zoom a {
   background: var(--panel) !important;
   color: var(--ink) !important;
