@@ -1,0 +1,15 @@
+# One-click deploy: https://render.com/deploy
+services:
+  - type: web
+    name: flight-aware
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
