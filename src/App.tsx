@@ -187,7 +187,7 @@ export default function App() {
       />
 
       <footer className="map-credit">
-        Free Pro suite · adsb.lol · RainViewer · Open-Meteo · OSM
+        Free Pro suite · adsb.fi · RainViewer · Open-Meteo · OSM
       </footer>
     </div>
   )

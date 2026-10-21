@@ -3,9 +3,10 @@ import { defineConfig, type ProxyOptions } from 'vite'
 
 const apiProxy: Record<string, ProxyOptions> = {
   '/api/adsb': {
-    target: 'https://api.adsb.lol',
+    // Prefer adsb.fi for local/dev; production serve.mjs also fails over to adsb.lol.
+    target: 'https://opendata.adsb.fi',
     changeOrigin: true,
-    rewrite: (path) => path.replace(/^\/api\/adsb/, ''),
+    rewrite: (path) => path.replace(/^\/api\/adsb/, '/api'),
   },
   '/api/metar': {
     target: 'https://aviationweather.gov',
