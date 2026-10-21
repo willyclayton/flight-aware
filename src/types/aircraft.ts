@@ -2,7 +2,10 @@ export type Aircraft = {
   hex: string
   flight: string
   registration?: string
+  /** ICAO type designator, e.g. B738 / C172 / R44 */
   type?: string
+  /** ADS-B emitter category, e.g. A1–A7 */
+  category?: string
   lat: number
   lon: number
   altBaro?: number | 'ground'
@@ -19,6 +22,7 @@ export type AdsbAircraftRaw = {
   flight?: string
   r?: string
   t?: string
+  category?: string
   lat?: number
   lon?: number
   alt_baro?: number | 'ground'

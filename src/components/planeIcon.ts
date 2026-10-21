@@ -1,31 +1,69 @@
 import L from 'leaflet'
-import { PLANE_COLORS } from '../lib/constants'
+import { altitudeFt } from '../lib/format'
+import { colorForAltitude } from '../lib/altitudeColor'
+import { resolveAircraftShape, shapeDef } from '../lib/resolveAircraftShape'
+import type { Aircraft } from '../types/aircraft'
 
-function colorForAltitude(altFt: number | null): string {
-  if (altFt === null) return PLANE_COLORS.unknown
-  if (altFt <= 0) return PLANE_COLORS.ground
-  if (altFt < 10_000) return PLANE_COLORS.low
-  if (altFt < 25_000) return PLANE_COLORS.mid
-  return PLANE_COLORS.high
+type Options = {
+  aircraft: Aircraft
+  selected: boolean
+  showLabel: boolean
 }
 
-export function createPlaneIcon(
-  trackDeg: number | undefined,
-  selected: boolean,
-  altFt: number | null,
-): L.DivIcon {
-  const color = selected ? PLANE_COLORS.selected : colorForAltitude(altFt)
-  const rotation = typeof trackDeg === 'number' ? trackDeg : 0
-  const size = selected ? 28 : 22
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+}
+
+export function createPlaneIcon({
+  aircraft,
+  selected,
+  showLabel,
+}: Options): L.DivIcon {
+  const shapeId = resolveAircraftShape(aircraft)
+  const shape = shapeDef(shapeId)
+  const alt = altitudeFt(aircraft)
+  const { fill, stroke } = colorForAltitude(alt, selected)
+  const rotation = typeof aircraft.track === 'number' ? aircraft.track : 0
+  const scale = selected ? 1.25 : 1
+  const w = Math.round(shape.width * scale)
+  const h = Math.round(shape.height * scale)
+
+  const altLabel =
+    alt === null ? '—' : alt === 0 ? 'GND' : String(Math.round(alt / 100) * 100)
+  const speedLabel =
+    typeof aircraft.gs === 'number' ? ` · ${Math.round(aircraft.gs)}kt` : ''
+
+  const label =
+    showLabel || selected
+      ? `<div class="plane-marker__label${selected ? ' is-selected' : ''}" style="left:${w + 4}px">
+          <span class="plane-marker__callsign">${escapeHtml(aircraft.flight)}</span>
+          ${
+            selected
+              ? `<span class="plane-marker__meta">${altLabel}${speedLabel}</span>`
+              : ''
+          }
+        </div>`
+      : ''
+
+  // Nose-up silhouettes; track 0° = north. Extra width holds the callsign label.
+  const boxW = showLabel || selected ? w + 88 : w
+  const boxH = Math.max(h, selected ? 40 : h)
 
   return L.divIcon({
     className: 'plane-marker',
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    html: `<div class="plane-marker__rotor${selected ? ' is-selected' : ''}" style="--rot:${rotation}deg;--c:${color};width:${size}px;height:${size}px">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 2.5c.4 0 .7.2.9.5l1.4 3.2 6.2 2.1c.7.2.7 1.2 0 1.4l-6.2 2.1-1.4 5.7c-.1.5-.6.8-1.1.6-.2 0-.3-.1-.4-.2l-1.4-5.7-6.2-2.1c-.7-.2-.7-1.2 0-1.4l6.2-2.1L11.1 3c.2-.3.5-.5.9-.5z"/>
-      </svg>
+    iconSize: [boxW, boxH],
+    iconAnchor: [w / 2, h / 2],
+    html: `<div class="plane-marker__wrap" style="width:${boxW}px;height:${boxH}px">
+      <div class="plane-marker__rotor${selected ? ' is-selected' : ''}" style="--rot:${rotation}deg;width:${w}px;height:${h}px">
+        <svg viewBox="${shape.viewBox}" width="${w}" height="${h}" aria-hidden="true">
+          <path d="${shape.path.replace(/\s+/g, ' ').trim()}" fill="${fill}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      ${label}
     </div>`,
   })
 }

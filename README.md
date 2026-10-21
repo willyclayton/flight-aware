@@ -27,6 +27,14 @@ npm start
 | Fonts | `@fontsource/*` (bundled) |
 | Proxy | Vite / `npm start` → `/api/adsb` |
 
+## Features
+
+- Live aircraft in the current map viewport (auto-refresh)
+- Type-accurate silhouettes (airliner, heavy, GA, helicopter, …) from ICAO type / ADS-B category
+- Altitude-colored icons + callsign labels (FlightAware-style)
+- Track by callsign or ICAO24 hex
+- Selected-flight panel with type, altitude, speed, track, squawk
+
 ## Scripts
 
 | Command | What it does |

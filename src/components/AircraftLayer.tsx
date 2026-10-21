@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react'
-import { Marker, useMap } from 'react-leaflet'
-import { altitudeFt } from '../lib/format'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Marker, useMap, useMapEvents } from 'react-leaflet'
 import type { Aircraft } from '../types/aircraft'
 import { createPlaneIcon } from './planeIcon'
 
@@ -10,26 +9,38 @@ type Props = {
   onSelect: (aircraft: Aircraft) => void
 }
 
+const LABEL_MIN_ZOOM = 9
+
 export function AircraftLayer({ aircraft, selectedHex, onSelect }: Props) {
   const map = useMap()
   const aircraftRef = useRef(aircraft)
+  const [showLabel, setShowLabel] = useState(() => map.getZoom() >= LABEL_MIN_ZOOM)
 
   useEffect(() => {
     aircraftRef.current = aircraft
   }, [aircraft])
+
+  useMapEvents({
+    zoomend() {
+      setShowLabel(map.getZoom() >= LABEL_MIN_ZOOM)
+    },
+  })
 
   const icons = useMemo(() => {
     const cache = new Map<string, ReturnType<typeof createPlaneIcon>>()
     for (const ac of aircraft) {
       cache.set(
         ac.hex,
-        createPlaneIcon(ac.track, ac.hex === selectedHex, altitudeFt(ac)),
+        createPlaneIcon({
+          aircraft: ac,
+          selected: ac.hex === selectedHex,
+          showLabel,
+        }),
       )
     }
     return cache
-  }, [aircraft, selectedHex])
+  }, [aircraft, selectedHex, showLabel])
 
-  // Pan once when selection changes — not on every traffic refresh.
   useEffect(() => {
     if (!selectedHex) return
     const selected = aircraftRef.current.find((ac) => ac.hex === selectedHex)
@@ -45,7 +56,11 @@ export function AircraftLayer({ aircraft, selectedHex, onSelect }: Props) {
           position={[ac.lat, ac.lon]}
           icon={
             icons.get(ac.hex) ??
-            createPlaneIcon(ac.track, false, altitudeFt(ac))
+            createPlaneIcon({
+              aircraft: ac,
+              selected: false,
+              showLabel,
+            })
           }
           eventHandlers={{ click: () => onSelect(ac) }}
           zIndexOffset={ac.hex === selectedHex ? 1000 : 0}

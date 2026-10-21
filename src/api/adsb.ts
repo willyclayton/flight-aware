@@ -21,6 +21,7 @@ function normalize(raw: AdsbAircraftRaw): Aircraft | null {
     flight,
     registration,
     type,
+    category: raw.category?.trim().toUpperCase() || undefined,
     lat: raw.lat,
     lon: raw.lon,
     altBaro: raw.alt_baro,

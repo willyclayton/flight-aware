@@ -63,8 +63,9 @@ input {
   background: #040b11;
 }
 
+/* Classic FlightAware-ish blue night map from free OSM tiles */
 .flight-map .leaflet-tile-pane {
-  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.92) saturate(0.4);
+  filter: invert(1) hue-rotate(190deg) brightness(0.85) contrast(1.05) saturate(0.55);
 }
 
 .flight-map .leaflet-control-zoom a {
@@ -84,35 +85,68 @@ input {
 .plane-marker {
   background: transparent !important;
   border: none !important;
+  overflow: visible !important;
+}
+
+.plane-marker__wrap {
+  position: relative;
+  overflow: visible;
 }
 
 .plane-marker__rotor {
+  position: absolute;
+  top: 0;
+  left: 0;
   display: grid;
   place-items: center;
   transform: rotate(var(--rot));
-  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.55));
-  transition: transform 0.45s ease, filter 0.3s ease;
-}
-
-.plane-marker__rotor svg {
-  width: 100%;
-  height: 100%;
-  fill: var(--c);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.65));
+  transition: transform 0.35s ease;
+  transform-origin: center center;
 }
 
 .plane-marker__rotor.is-selected {
-  animation: plane-pulse 1.6s ease-in-out infinite;
-  filter: drop-shadow(0 0 10px rgba(240, 180, 41, 0.75));
+  filter: drop-shadow(0 0 8px rgba(245, 197, 24, 0.85));
 }
 
-@keyframes plane-pulse {
-  0%,
-  100% {
-    transform: rotate(var(--rot)) scale(1);
-  }
-  50% {
-    transform: rotate(var(--rot)) scale(1.12);
-  }
+.plane-marker__rotor svg {
+  display: block;
+  overflow: visible;
+}
+
+.plane-marker__label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.12rem 0.35rem;
+  border-radius: 0.25rem;
+  color: #f4f7fa;
+  background: rgba(6, 16, 28, 0.78);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.plane-marker__label.is-selected {
+  padding: 0.28rem 0.45rem;
+  border: 1px solid rgba(245, 197, 24, 0.55);
+  background: rgba(8, 18, 30, 0.92);
+}
+
+.plane-marker__callsign {
+  display: block;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.plane-marker__meta {
+  display: block;
+  margin-top: 0.1rem;
+  color: #f5c518;
+  font-size: 0.62rem;
 }
 
 /* —— HUD —— */
@@ -144,7 +178,11 @@ input {
   }
 }
 
-.brand {
+.brand-dock {
+  position: absolute;
+  z-index: 500;
+  left: 0.85rem;
+  bottom: 2.1rem;
   display: inline-flex;
   align-items: center;
   gap: 0.7rem;
@@ -155,6 +193,7 @@ input {
   background: var(--panel);
   box-shadow: var(--shadow);
   backdrop-filter: blur(12px);
+  pointer-events: none;
 }
 
 .brand__mark {
@@ -442,7 +481,7 @@ input {
     width: calc(100% - 1rem);
   }
 
-  .brand {
+  .brand-dock {
     display: none;
   }
 

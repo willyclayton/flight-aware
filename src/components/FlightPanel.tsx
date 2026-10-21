@@ -5,11 +5,28 @@ import {
   formatTrack,
   formatVerticalRate,
 } from '../lib/format'
+import { resolveAircraftShape } from '../lib/resolveAircraftShape'
 import type { Aircraft } from '../types/aircraft'
 
 type Props = {
   aircraft: Aircraft | null
   onClose: () => void
+}
+
+const SHAPE_LABELS: Record<string, string> = {
+  airliner: 'Airliner',
+  heavy_2e: 'Heavy twin-jet',
+  heavy_4e: 'Heavy 4-engine',
+  jet_swept: 'Business jet',
+  jet_nonswept: 'Light jet',
+  cessna: 'Light piston',
+  twin_small: 'Light twin',
+  twin_large: 'Turboprop twin',
+  helicopter: 'Helicopter',
+  hi_perf: 'High performance',
+  balloon: 'Balloon',
+  ground: 'Ground',
+  unknown: 'Unknown',
 }
 
 const FIELDS: Array<{
@@ -18,13 +35,20 @@ const FIELDS: Array<{
   span?: boolean
 }> = [
   { label: 'ICAO', value: (ac) => ac.hex.toUpperCase() },
-  { label: 'Type', value: (ac) => ac.type ?? '—' },
+  {
+    label: 'Type',
+    value: (ac) =>
+      ac.type
+        ? `${ac.type} · ${SHAPE_LABELS[resolveAircraftShape(ac)] ?? 'Unknown'}`
+        : (SHAPE_LABELS[resolveAircraftShape(ac)] ?? '—'),
+  },
   { label: 'Altitude', value: formatAltitude },
   { label: 'Ground speed', value: formatSpeed },
   { label: 'Track', value: formatTrack },
   { label: 'Vertical', value: formatVerticalRate },
   { label: 'Squawk', value: (ac) => ac.squawk ?? '—' },
   { label: 'Registration', value: (ac) => ac.registration ?? '—' },
+  { label: 'Category', value: (ac) => ac.category ?? '—' },
   { label: 'Position', value: formatPosition, span: true },
 ]
 
